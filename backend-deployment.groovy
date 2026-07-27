@@ -1,10 +1,10 @@
 pipeline {
     agent any
     environment {
-        DOCKER_REPO = "flight-reservation53"
-        DOCKER_USER = "mayurwagh"
+        DOCKER_REPO = "flight-reservation"
+        DOCKER_USER = "deepbijwe"
         CLUSTER_NAME = "cbz-cluster"
-        REGION = "eu-north-1"
+        REGION = "ap-south-1"
 
     }
 
@@ -13,7 +13,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/mayurmwagh/flight-reservation-backend.git'
+                    url: 'https://github.com/deepbijwe/flight-reservation-backend.git'
             }
         }
 
@@ -43,63 +43,63 @@ pipeline {
                 ''' 
             }
         }
-        stage('Docker login'){
-            steps{
-               withCredentials([
-                        usernamePassword(
-                            credentialsId: 'docker-hub-creds',
-                            usernameVariable: 'DOCKER_USERNAME',
-                            passwordVariable: 'DOCKER_PASSWORD'
-                        )
-                    ]) 
-                    {
-                        sh 'docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}'
-                    }
-                }
-            }
+        // stage('Docker login'){
+        //     steps{
+        //        withCredentials([
+        //                 usernamePassword(
+        //                     credentialsId: 'docker-hub-creds',
+        //                     usernameVariable: 'DOCKER_USERNAME',
+        //                     passwordVariable: 'DOCKER_PASSWORD'
+        //                 )
+        //             ]) 
+        //             {
+        //                 sh 'docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}'
+        //             }
+        //         }
+        //     }
 
-        stage('Docker Push') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'docker-hub-creds',
-                        usernameVariable: 'DOCKER_USERNAME',
-                        passwordVariable: 'DOCKER_PASSWORD'
-                    )
-                ]) {
-                    sh '''
-                        docker tag ${DOCKER_REPO}:${BUILD_NUMBER} \
-                        ${DOCKER_USER}/${DOCKER_REPO}:${BUILD_NUMBER}
+        // stage('Docker Push') {
+        //     steps {
+        //         withCredentials([
+        //             usernamePassword(
+        //                 credentialsId: 'docker-hub-creds',
+        //                 usernameVariable: 'DOCKER_USERNAME',
+        //                 passwordVariable: 'DOCKER_PASSWORD'
+        //             )
+        //         ]) {
+        //             sh '''
+        //                 docker tag ${DOCKER_REPO}:${BUILD_NUMBER} \
+        //                 ${DOCKER_USER}/${DOCKER_REPO}:${BUILD_NUMBER}
 
-                        docker push ${DOCKER_USER}/${DOCKER_REPO}:${BUILD_NUMBER}
-                    '''
-                }
-            }
-        }
-        stage('Image-Name-change'){
-                steps {
+        //                 docker push ${DOCKER_USER}/${DOCKER_REPO}:${BUILD_NUMBER}
+        //             '''
+        //         }
+        //     }
+        // }
+        // stage('Image-Name-change'){
+        //         steps {
           
-                    sh '''
-                     sed -i "s|mayurwagh/node-app:latest|${DOCKER_USER}/${DOCKER_REPO}:${BUILD_NUMBER}|g" k8s/deployment.yaml
-                    '''
-                    sh 'cat k8s/deployment.yaml'
-                }
-            }
-        stage('Deploy to cluster'){
-                steps{
-                    withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws_creds', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                         sh '''
-                            aws eks update-kubeconfig --name ${CLUSTER_NAME} --region ${REGION}
+        //             sh '''
+        //              sed -i "s|mayurwagh/node-app:latest|${DOCKER_USER}/${DOCKER_REPO}:${BUILD_NUMBER}|g" k8s/deployment.yaml
+        //             '''
+        //             sh 'cat k8s/deployment.yaml'
+        //         }
+        //     }
+        // stage('Deploy to cluster'){
+        //         steps{
+        //             withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws_creds', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+        //                  sh '''
+        //                     aws eks update-kubeconfig --name ${CLUSTER_NAME} --region ${REGION}
                             
-                            kubectl get nodes
-                            kubectl apply -f k8s/deployment.yaml
-                            kubectl apply -f k8s/service.yaml
-                            kubectl get pods 
-                            kubectl get deployment
-                            kubectl get svc 
-                         '''
-                    }
-                }
-            }
+        //                     kubectl get nodes
+        //                     kubectl apply -f k8s/deployment.yaml
+        //                     kubectl apply -f k8s/service.yaml
+        //                     kubectl get pods 
+        //                     kubectl get deployment
+        //                     kubectl get svc 
+        //                  '''
+        //             }
+        //         }
+        //    }
     }
 }

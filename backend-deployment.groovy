@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKER_REPO = "flight-reservation"
+        ECR_REPO = "deep/flight-backend"
         DOCKER_USER = "deepbijwe"
         CLUSTER_NAME = "cbz-cluster"
         REGION = "ap-south-1"
@@ -39,7 +39,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                docker build -t ${DOCKER_REPO}:${BUILD_NUMBER} .
+                docker build -t ${ECR_REPO}:${BUILD_NUMBER} .
                 ''' 
             }
         }
